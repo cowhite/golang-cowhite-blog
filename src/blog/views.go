@@ -13,6 +13,8 @@ func HomeView(c *fiber.Ctx) error {
 }
 
 func AddCategoryView(c *fiber.Ctx) error {
+	fmt.Println("AddCategoryView...")
+
 	category := new(Category)
 	c.BodyParser(category)
 
@@ -25,4 +27,25 @@ func AddCategoryView(c *fiber.Ctx) error {
 	fmt.Println("res,,")
 	fmt.Println(category)
 	return c.Status(fiber.StatusCreated).JSON(category)
+}
+
+func AddBlogPostView(c *fiber.Ctx) error {
+	fmt.Println("AddBlogPostView...")
+	blogpost := new(BlogPost)
+	err := c.BodyParser(blogpost)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err,
+		})
+	}
+
+	// errors := ValidateNewBlogPost(c, blogpost)
+	// if errors.Error {
+	// 	return c.Status(fiber.StatusBadRequest).JSON(errors)
+	// }
+
+	blogpost = NewBlogPost(c, blogpost)
+	fmt.Println("res,,")
+	fmt.Println(blogpost)
+	return c.Status(fiber.StatusCreated).JSON(blogpost)
 }

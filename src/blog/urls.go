@@ -7,4 +7,5 @@ import (
 func SetupUrls(app fiber.Router) {
 	app.Get("/", HomeView)
 	app.Post("/categories/new", AddCategoryView)
+	app.Post("/blogposts/new", AddBlogPostView)
 }

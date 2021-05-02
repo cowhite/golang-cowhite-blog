@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"src/config"
-	"strconv"
+	// "strconv"
 
 	"github.com/gofiber/fiber/v2"
 	// "github.com/fatih/structs"
@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	"github.com/gosimple/slug"
+	// "github.com/gosimple/slug"
 
     "src/utils"
 
@@ -47,35 +47,6 @@ type BlogPostCategory struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func GenerateUniqueSlug(c *fiber.Ctx, title string, collection_name string, slug_field string) string {
-	if title == "" {
-		return ""
-	}
-	if slug_field == "" {
-		slug_field = "slug"
-	}
-
-	var temp_title string = title
-	var title_slug string
-	var err error
-	var i int = 0
-
-	JSONData := &bson.D{}
-	db := config.Connect().Db
-	collection := db.Collection(collection_name)
-
-	for true {
-		title_slug = slug.Make(temp_title)
-		err = collection.FindOne(c.Context(), bson.M{"slug": title_slug}).Decode(JSONData)
-		if err != nil {
-			break
-		}
-		i++
-		temp_title = title + "-" + strconv.Itoa(i)
-	}
-	return title_slug
-}
-
 // func Add(c *fiber.Ctx, x int, y int) int {
 // 	fmt.Println(time.Now())
 // 	NewBlogPost(c, "ddd")
@@ -106,7 +77,7 @@ func GenerateUniqueSlug(c *fiber.Ctx, title string, collection_name string, slug
 // 	return blog
 // }
 
-func ValidateNewCategory(c *fiber.Ctx, category *Category) *utils.ErrorResponse {
+func ValidateNewCategory(c *fiber.Ctx, category *Category) []utils.ErrorResponse {
 	db := config.Connect().Db
 
 	// category := new(Category)
@@ -115,18 +86,24 @@ func ValidateNewCategory(c *fiber.Ctx, category *Category) *utils.ErrorResponse 
 	category_collection := db.Collection("categories")
 	err := category_collection.FindOne(c.Context(), bson.M{"title": category.Title}).Decode(&category)
 
+	var errors []utils.ErrorResponse
+
 	// var res Response
 	if err == nil {
-		return &utils.ErrorResponse{
-			Error: true,
-			Message: "Title already exists",
-			Errors: []string{"Title already exists"},
-		}
+		errors = append(errors, utils.ErrorResponse{
+			Key: "title",
+			Value: "Title already exists",
+			// Error: true,
+			// Message: "Title already exists",
+			// Errors: []string{"Title already exists"},
+		})
+		return errors
 	}
-	return &utils.ErrorResponse{
-		Error: false,
-		Message: "",
-	}
+	return []utils.ErrorResponse{}
+	// return &utils.ErrorResponse{
+	// 	Error: false,
+	// 	Message: "",
+	// }
 
 }
 
@@ -136,7 +113,7 @@ func NewCategory(c *fiber.Ctx, category *Category) *Category {
 	category_collection := db.Collection("categories")
 
 	// title not found, so create it
-	title_slug := GenerateUniqueSlug(c, category.Title, "categories", "slug")
+	title_slug := utils.GenerateUniqueSlug(c, category.Title, "categories", "slug")
 	fmt.Println("title_slug")
 	fmt.Println(title_slug)
 	category.Slug = title_slug
@@ -175,7 +152,7 @@ func NewBlogPost(c *fiber.Ctx, blogpost *BlogPost) *BlogPost {
 	blogpost_collection := db.Collection("blogposts")
 
 	// title not found, so create it
-	title_slug := GenerateUniqueSlug(c, blogpost.Title, "blogposts", "slug")
+	title_slug := utils.GenerateUniqueSlug(c, blogpost.Title, "blogposts", "slug")
 	fmt.Println("title_slug")
 	fmt.Println(title_slug)
 	blogpost.Slug = title_slug

@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
     // "strconv"
     "fmt"
+    "src/utils"
 )
 
 func HomeView(c *fiber.Ctx) error {
@@ -19,13 +20,12 @@ func AddCategoryView(c *fiber.Ctx) error {
 	c.BodyParser(category)
 
 	errors := ValidateNewCategory(c, category)
-	if errors.Error {
-		return c.Status(fiber.StatusBadRequest).JSON(errors)
+	if errors != nil {
+		var response utils.Response = utils.GetErrorResponse(errors)
+		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
 	category = NewCategory(c, category)
-	fmt.Println("res,,")
-	fmt.Println(category)
 	return c.Status(fiber.StatusCreated).JSON(category)
 }
 
